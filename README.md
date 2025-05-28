@@ -105,12 +105,6 @@ In the project directory, you can run:
 
 ---
 
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
 ## 🙌 Acknowledgements
 
 - [React.js](https://reactjs.org/)
@@ -123,6 +117,4 @@ This project is licensed under the [MIT License](LICENSE).
 - [Zustand](https://zustand-demo.pmnd.rs/)
 - [Cloudinary](https://cloudinary.com/)
 
----
 
-Feel free to contribute to this project by submitting issues or pull requests.
