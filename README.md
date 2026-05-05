@@ -62,7 +62,7 @@ BaatCheet/
    Create a `.env` file in the root directory and add the following:
 
    ```env
-   MONGODB_URI=your_mongodb_connection_string
+   MONGO_URI=your_mongodb_connection_string
    PORT=5001
    JWT_SECRET=your_jwt_secret
 
@@ -76,19 +76,20 @@ BaatCheet/
 3. **Install Dependencies**:
 
    ```bash
+   in backend + frontend
    npm install
    ```
 
 4. **Build the Application**:
 
    ```bash
-   npm run build
+   npm run dev
    ```
 
 5. **Start the Application**:
 
    ```bash
-   npm start
+   npm dev
    ```
 
    The application will be accessible at `http://localhost:5001`.
