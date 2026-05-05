@@ -73,20 +73,20 @@ BaatCheet/
    NODE_ENV=development
    ```
 
-3. **Install Dependencies**:
+3. **Install Dependencies**: in both frontend and backend
 
    ```bash
-   in backend + frontend
+   
    npm install
    ```
 
-4. **Build the Application**:
+4. **Build the Application**: in backend
 
    ```bash
    npm run dev
    ```
 
-5. **Start the Application**:
+5. **Start the Application**: frontend
 
    ```bash
    npm dev
