@@ -89,7 +89,7 @@ BaatCheet/
 5. **Start the Application**: frontend
 
    ```bash
-   npm dev
+   npm run dev
    ```
 
    The application will be accessible at `http://localhost:5001`.
