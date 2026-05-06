@@ -47,7 +47,7 @@ const SignUpPage = () => {
                 <div>
                   <h2 className="text-xl font-semibold">Create an Account</h2>
                   <p className="text-sm opacity-70">
-                    Join BaatCheet and start your language learning adventure!
+                    Join Talkmates and start your language learning adventure!
                   </p>
                 </div>
 
