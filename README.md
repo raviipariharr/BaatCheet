@@ -1,6 +1,6 @@
 # 🗨️ BaatCheet
 
-**BaatCheet** is a full-stack real-time chat application built using the MERN stack (MongoDB, Express.js, React.js, Node.js), integrated with Socket.io for real-time communication. It features user authentication, online user status, and a responsive UI powered by Tailwind CSS and Daisy UI.
+**BaatCheet** is a real-time language exchange and social networking platform that helps people learn new languages by connecting with native speakers around the world its full-stack real-time chat application built using the MERN stack (MongoDB, Express.js, React.js, Node.js), integrated with Socket.io for real-time communication. It features user authentication, online user status, and a responsive UI powered by Tailwind CSS and Daisy UI.
 
 ---
 **LIVE** - https://baatcheet-uevz.onrender.com/
