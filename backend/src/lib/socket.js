@@ -157,6 +157,17 @@ export function initSocket(httpServer) {
         });
       }
     });
+
+    socket.on("chat:read", async ({ from } = {}) => {
+      if (!mongoose.isValidObjectId(from)) return;
+      await Message.updateMany(
+        { sender: from, recipient: me, readAt: null },
+        { $set: { readAt: new Date() } }
+      );
+      // other tabs of mine clear their badge too
+      io.to(`user:${me}`).emit("unread:cleared", { from });
+    });
+
   });
 
   return io;

@@ -73,3 +73,13 @@ export async function translateMessage(messageId) {
   const response = await axiosInstance.post("/chat/translate", { messageId });
   return response.data;
 }
+
+export async function getMessages(userId, before) {
+  const response = await axiosInstance.get(`/chat/messages/${userId}`, { params: { before } });
+  return response.data;
+}
+
+export async function getUnreadCounts() {
+  const response = await axiosInstance.get("/chat/unread");
+  return response.data;
+}

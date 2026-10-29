@@ -1,11 +1,10 @@
 import mongoose from "mongoose";
-import { generateStreamToken } from "../lib/stream.js"; // delete this in phase 4, with getStreamToken
+import Message from "../models/Message.js";
+import { generateStreamToken } from "../lib/stream.js"; // delete in phase 4
+import { conversationId } from "../lib/conversation.js";
 import { translateText, TranslationError } from "../lib/translate.js";
 import { cached } from "../lib/cache.js";
-import Message from "../models/Message.js";
-import { conversationId } from "../lib/conversation.js";
 
-// DELETE this whole function in phase 4 (after the new chat works)
 export async function getStreamToken(req, res) {
   try {
     const token = generateStreamToken(req.user.id);
@@ -38,11 +37,25 @@ export async function getMessages(req, res) {
   }
 }
 
+// { "<senderId>": <count>, ... }
+export async function getUnreadCounts(req, res) {
+  try {
+    const rows = await Message.aggregate([
+      { $match: { recipient: new mongoose.Types.ObjectId(req.user.id), readAt: null } },
+      { $group: { _id: "$sender", count: { $sum: 1 } } },
+    ]);
+    res.status(200).json(Object.fromEntries(rows.map((r) => [r._id.toString(), r.count])));
+  } catch (error) {
+    console.error("Error in getUnreadCounts controller:", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
 export async function translateMessage(req, res) {
   try {
     const { messageId } = req.body;
-    if (!messageId || !mongoose.isValidObjectId(messageId)) {
-      return res.status(400).json({ message: "A valid messageId is required" });
+    if (typeof messageId !== "string" || !mongoose.isValidObjectId(messageId)) {
+      return res.status(400).json({ message: "Invalid messageId" });
     }
 
     const target = req.user.nativeLanguage;
@@ -60,8 +73,7 @@ export async function translateMessage(req, res) {
       return res.status(403).json({ message: "You can't translate this message" });
     }
 
-    // messages can't be edited, so id + target is a stable cache key
-    const key = `${message._id}:${target}`;
+    const key = `${message._id}:${target}`; // messages can't be edited
     const { translatedText, sameLanguage } = await cached(key, () =>
       translateText(message.text, target)
     );
