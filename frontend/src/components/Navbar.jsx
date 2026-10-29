@@ -20,32 +20,37 @@ const Navbar = () => {
             <div className="pl-5">
               <Link to="/" className="flex items-center gap-2.5">
                 <ShipWheelIcon className="size-9 text-primary" />
-                <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary  tracking-wider">
+                <span className="text-3xl font-bold font-mono bg-clip-text text-transparent bg-gradient-to-r from-primary to-secondary tracking-wider">
                   BaatCheet
                 </span>
               </Link>
             </div>
           )}
 
+          {/* Notifications */}
           <div className="flex items-center gap-3 sm:gap-4 ml-auto">
-            <Link to={"/notifications"}>
+            <Link to="/notifications">
               <button className="btn btn-ghost btn-circle">
                 <BellIcon className="h-6 w-6 text-base-content opacity-70" />
               </button>
             </Link>
           </div>
 
-          {/* TODO */}
+          {/* Theme Selector */}
           <ThemeSelector />
 
-          <div className="avatar">
+          {/* Profile Avatar - Click to open Profile Page */}
+          <Link to="/profile" className="avatar">
             <div className="w-9 rounded-full">
-              <img src={authUser?.profilePic} alt="User Avatar" rel="noreferrer" />
+              <img src={authUser?.profilePic} alt="User Avatar" />
             </div>
-          </div>
+          </Link>
 
-          {/* Logout button */}
-          <button className="btn btn-ghost btn-circle" onClick={logoutMutation}>
+          {/* Logout Button */}
+          <button
+            className="btn btn-ghost btn-circle"
+            onClick={logoutMutation}
+          >
             <LogOutIcon className="h-6 w-6 text-base-content opacity-70" />
           </button>
         </div>
@@ -53,4 +58,5 @@ const Navbar = () => {
     </nav>
   );
 };
+
 export default Navbar;

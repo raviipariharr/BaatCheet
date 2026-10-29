@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
 import { completeOnboarding } from "../lib/api";
 import { CameraIcon, LoaderIcon, MapPinIcon, ShipWheelIcon, ShuffleIcon } from "lucide-react";
-import { LANGUAGES } from "../constants";
+import LanguagePicker from "../components/LanguagePicker";
 
 const OnboardingPage = () => {
   const { authUser } = useAuthUser();
@@ -15,6 +15,7 @@ const OnboardingPage = () => {
     bio: authUser?.bio || "",
     nativeLanguage: authUser?.nativeLanguage || "",
     learningLanguage: authUser?.learningLanguage || "",
+    knownLanguages: authUser?.knownLanguages || [],
     location: authUser?.location || "",
     profilePic: authUser?.profilePic || "",
   });
@@ -25,23 +26,21 @@ const OnboardingPage = () => {
       toast.success("Profile onboarded successfully");
       queryClient.invalidateQueries({ queryKey: ["authUser"] });
     },
-
     onError: (error) => {
-      toast.error(error.response.data.message);
+      toast.error(error.response?.data?.message || "Something went wrong");
     },
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
     onboardingMutation(formState);
   };
 
   const handleRandomAvatar = () => {
-  const randomAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random()}`;
-  setFormState({ ...formState, profilePic: randomAvatar });
-  toast.success("Random profile picture generated!");
-};
+    const randomAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random()}`;
+    setFormState({ ...formState, profilePic: randomAvatar });
+    toast.success("Random profile picture generated!");
+  };
 
   return (
     <div className="min-h-screen bg-base-100 flex items-center justify-center p-4">
@@ -50,9 +49,8 @@ const OnboardingPage = () => {
           <h1 className="text-2xl sm:text-3xl font-bold text-center mb-6">Complete Your Profile</h1>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* PROFILE PIC CONTAINER */}
+            {/* PROFILE PIC */}
             <div className="flex flex-col items-center justify-center space-y-4">
-              {/* IMAGE PREVIEW */}
               <div className="size-32 rounded-full bg-base-300 overflow-hidden">
                 {formState.profilePic ? (
                   <img
@@ -67,13 +65,10 @@ const OnboardingPage = () => {
                 )}
               </div>
 
-              {/* Generate Random Avatar BTN */}
-              <div className="flex items-center gap-2">
-                <button type="button" onClick={handleRandomAvatar} className="btn btn-accent">
-                  <ShuffleIcon className="size-4 mr-2" />
-                  Generate Random Avatar
-                </button>
-              </div>
+              <button type="button" onClick={handleRandomAvatar} className="btn btn-accent">
+                <ShuffleIcon className="size-4 mr-2" />
+                Generate Random Avatar
+              </button>
             </div>
 
             {/* FULL NAME */}
@@ -105,48 +100,8 @@ const OnboardingPage = () => {
               />
             </div>
 
-            {/* LANGUAGES */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* NATIVE LANGUAGE */}
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Native Language</span>
-                </label>
-                <select
-                  name="nativeLanguage"
-                  value={formState.nativeLanguage}
-                  onChange={(e) => setFormState({ ...formState, nativeLanguage: e.target.value })}
-                  className="select select-bordered w-full"
-                >
-                  <option value="">Select your native language</option>
-                  {LANGUAGES.map((lang) => (
-                    <option key={`native-${lang}`} value={lang.toLowerCase()}>
-                      {lang}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* LEARNING LANGUAGE */}
-              <div className="form-control">
-                <label className="label">
-                  <span className="label-text">Learning Language</span>
-                </label>
-                <select
-                  name="learningLanguage"
-                  value={formState.learningLanguage}
-                  onChange={(e) => setFormState({ ...formState, learningLanguage: e.target.value })}
-                  className="select select-bordered w-full"
-                >
-                  <option value="">Select language you're learning</option>
-                  {LANGUAGES.map((lang) => (
-                    <option key={`learning-${lang}`} value={lang.toLowerCase()}>
-                      {lang}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
+            {/* LANGUAGES: native, learning, other known */}
+            <LanguagePicker value={formState} onChange={setFormState} />
 
             {/* LOCATION */}
             <div className="form-control">
@@ -166,8 +121,7 @@ const OnboardingPage = () => {
               </div>
             </div>
 
-            {/* SUBMIT BUTTON */}
-
+            {/* SUBMIT */}
             <button className="btn btn-primary w-full" disabled={isPending} type="submit">
               {!isPending ? (
                 <>

@@ -1,5 +1,6 @@
 import User from "../models/User.js";
 import FriendRequest from "../models/FriendRequest.js";
+import { parseLanguages } from "../lib/languages.js";
 
 export async function getRecommendedUsers(req, res) {
   try {
@@ -12,7 +13,7 @@ export async function getRecommendedUsers(req, res) {
         { _id: { $nin: currentUser.friends } }, // exclude current user's friends
         { isOnboarded: true },
       ],
-    });
+    }).select("-password -email");
     res.status(200).json(recommendedUsers);
   } catch (error) {
     console.error("Error in getRecommendedUsers controller", error.message);
@@ -143,6 +144,24 @@ export async function getOutgoingFriendReqs(req, res) {
     res.status(200).json(outgoingRequests);
   } catch (error) {
     console.log("Error in getOutgoingFriendReqs controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+export async function updateLanguages(req, res) {
+  try {
+    const langs = parseLanguages(req.body);
+    if (langs.error) return res.status(400).json({ message: langs.error });
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: langs.data },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    console.error("Error in updateLanguages controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
   }
 }

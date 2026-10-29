@@ -21,29 +21,26 @@ const Sidebar = () => {
       <nav className="flex-1 p-4 space-y-1">
         <Link
           to="/"
-          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
-            currentPath === "/" ? "btn-active" : ""
-          }`}
+          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${currentPath === "/" ? "btn-active" : ""
+            }`}
         >
           <HomeIcon className="size-5 text-base-content opacity-70" />
           <span>Home</span>
         </Link>
 
         <Link
-          to="/friends"
-          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
-            currentPath === "/friends" ? "btn-active" : ""
-          }`}
+          to="/profile"
+          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${currentPath === "/profile" ? "btn-active" : ""
+            }`}
         >
           <UsersIcon className="size-5 text-base-content opacity-70" />
-          <span>Friends</span>
+          <span>Profile</span>
         </Link>
 
         <Link
           to="/notifications"
-          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${
-            currentPath === "/notifications" ? "btn-active" : ""
-          }`}
+          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${currentPath === "/notifications" ? "btn-active" : ""
+            }`}
         >
           <BellIcon className="size-5 text-base-content opacity-70" />
           <span>Notifications</span>
@@ -53,6 +50,7 @@ const Sidebar = () => {
       {/* USER PROFILE SECTION */}
       <div className="p-4 border-t border-base-300 mt-auto">
         <div className="flex items-center gap-3">
+
           <div className="avatar">
             <div className="w-10 rounded-full">
               <img src={authUser?.profilePic} alt="User Avatar" />

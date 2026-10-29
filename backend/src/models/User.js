@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
+import { SUPPORTED_LANGUAGES } from "../lib/languages.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -25,14 +26,12 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-    nativeLanguage: {
-      type: String,
-      default: "",
-    },
-    learningLanguage: {
-      type: String,
-      default: "",
-    },
+   nativeLanguage: { type: String, enum: ["", ...SUPPORTED_LANGUAGES], default: "" },
+  learningLanguage: { type: String, enum: ["", ...SUPPORTED_LANGUAGES], default: "" },
+  knownLanguages: {
+  type: [{ type: String, enum: SUPPORTED_LANGUAGES }],
+  default: [],
+},
     location: {
       type: String,
       default: "",
@@ -67,6 +66,8 @@ userSchema.methods.matchPassword = async function (enteredPassword) {
   const isPasswordCorrect = await bcrypt.compare(enteredPassword, this.password);
   return isPasswordCorrect;
 };
+
+userSchema.index({ nativeLanguage: 1, learningLanguage: 1 });
 
 const User = mongoose.model("User", userSchema);
 

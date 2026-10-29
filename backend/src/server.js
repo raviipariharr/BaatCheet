@@ -1,3 +1,5 @@
+import dns from "node:dns";
+dns.setServers(["8.8.8.8", "8.8.4.4"]);
 import express from "express";
 import "dotenv/config";
 import cookieParser from "cookie-parser";
