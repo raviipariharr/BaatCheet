@@ -14,12 +14,17 @@
   "dependencies": {
     "baatcheet": "file:..",
     "bcryptjs": "^3.0.2",
+    "cookie": "^2.0.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
+    "emoji-picker-react": "^5.1.4",
     "express": "^4.21.0",
+    "express-rate-limit": "^8.7.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.13.2",
+    "socket.io": "^4.8.4",
+    "socket.io-client": "^4.8.4",
     "stream-chat": "^8.60.0"
   },
   "devDependencies": {

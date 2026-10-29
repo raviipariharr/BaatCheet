@@ -68,3 +68,8 @@ export async function updateLanguages(data) {
   const response = await axiosInstance.put("/users/me/languages", data);
   return response.data;
 }
+
+export async function translateMessage(messageId) {
+  const response = await axiosInstance.post("/chat/translate", { messageId });
+  return response.data;
+}

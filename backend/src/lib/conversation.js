@@ -1,0 +1,1 @@
+export const conversationId = (a, b) => [a.toString(), b.toString()].sort().join("-");

@@ -1,20 +1,24 @@
 import User from "../models/User.js";
 import FriendRequest from "../models/FriendRequest.js";
 import { parseLanguages } from "../lib/languages.js";
+import { scoreMatch } from "../lib/matching.js";
 
 export async function getRecommendedUsers(req, res) {
   try {
-    const currentUserId = req.user.id;
-    const currentUser = req.user;
+    const me = req.user;
 
-    const recommendedUsers = await User.find({
-      $and: [
-        { _id: { $ne: currentUserId } }, //exclude current user
-        { _id: { $nin: currentUser.friends } }, // exclude current user's friends
-        { isOnboarded: true },
-      ],
-    }).select("-password -email");
-    res.status(200).json(recommendedUsers);
+    const candidates = await User.find({
+      _id: { $ne: me._id, $nin: me.friends },
+      isOnboarded: true,
+    })
+      .select("-password -email")
+      .lean();
+
+    const ranked = candidates
+      .map((u) => ({ ...u, match: scoreMatch(me, u) }))
+      .sort((a, b) => b.match.score - a.match.score);
+
+    res.status(200).json(ranked);
   } catch (error) {
     console.error("Error in getRecommendedUsers controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
