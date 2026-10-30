@@ -168,6 +168,29 @@ export function initSocket(httpServer) {
       io.to(`user:${me}`).emit("unread:cleared", { from });
     });
 
+    socket.on("message:delete", async ({ messageId } = {}, ack) => {
+      try {
+        if (!mongoose.isValidObjectId(messageId)) {
+          return ack?.({ ok: false, message: "Invalid message" });
+        }
+
+        // the sender filter makes "only my own messages" a single atomic check
+        const msg = await Message.findOneAndDelete({ _id: messageId, sender: me });
+        if (!msg) return ack?.({ ok: false, message: "Message not found" });
+
+        io.to([`user:${me}`, `user:${msg.recipient}`]).emit("message:deleted", {
+          messageId,
+          sender: me,
+          recipient: msg.recipient.toString(),
+          wasUnread: !msg.readAt, // so the recipient's badge can go down
+        });
+        ack?.({ ok: true });
+      } catch (error) {
+        console.error("message:delete error:", error.message);
+        ack?.({ ok: false, message: "Could not delete message" });
+      }
+    });
+
   });
 
   return io;

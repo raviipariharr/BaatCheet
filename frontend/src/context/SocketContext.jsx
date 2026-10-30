@@ -92,6 +92,17 @@ export const SocketProvider = ({ children }) => {
 
     s.on("unread:cleared", ({ from }) => setUnread((prev) => withoutKey(prev, from)));
 
+    s.on("message:deleted", ({ sender, recipient, wasUnread }) => {
+      if (recipient !== myId || !wasUnread) return;
+      setUnread((prev) => {
+        const n = (prev[sender] || 0) - 1;
+        const next = { ...prev };
+        if (n > 0) next[sender] = n;
+        else delete next[sender];
+        return next;
+      });
+    });
+
     return () => {
       s.disconnect();
       setSocket(null);

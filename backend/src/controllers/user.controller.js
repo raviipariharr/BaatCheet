@@ -169,3 +169,24 @@ export async function updateLanguages(req, res) {
     res.status(500).json({ message: "Internal Server Error" });
   }
 }
+
+export async function updateProfile(req, res) {
+  try {
+    const bio = typeof req.body.bio === "string" ? req.body.bio.trim() : "";
+    if (!bio) return res.status(400).json({ message: "Bio can't be empty" });
+    if (bio.length > 200) {
+      return res.status(400).json({ message: "Bio must be 200 characters or fewer" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      { $set: { bio } },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    console.error("Error in updateProfile controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
