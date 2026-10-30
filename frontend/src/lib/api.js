@@ -83,3 +83,15 @@ export async function getUnreadCounts() {
   const response = await axiosInstance.get("/chat/unread");
   return response.data;
 }
+
+export async function updateProfile(data) {
+  const response = await axiosInstance.put("/users/me/profile", data);
+  return response.data;
+}
+
+export async function uploadAvatar(file) {
+  const form = new FormData();
+  form.append("avatar", file); // axios sets the multipart header itself; don't set it manually
+  const response = await axiosInstance.put("/users/me/avatar", form);
+  return response.data;
+}

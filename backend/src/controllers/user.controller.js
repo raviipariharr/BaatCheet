@@ -2,6 +2,8 @@ import User from "../models/User.js";
 import FriendRequest from "../models/FriendRequest.js";
 import { parseLanguages } from "../lib/languages.js";
 import { scoreMatch } from "../lib/matching.js";
+import mongoose from "mongoose";
+import sharp from "sharp";
 
 export async function getRecommendedUsers(req, res) {
   try {
@@ -188,5 +190,54 @@ export async function updateProfile(req, res) {
   } catch (error) {
     console.error("Error in updateProfile controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+export async function updateAvatar(req, res) {
+  try {
+    if (!req.file) return res.status(400).json({ message: "No image uploaded" });
+
+    let buffer;
+    try {
+      buffer = await sharp(req.file.buffer, { limitInputPixels: 40_000_000 })
+        .rotate() // respect phone orientation
+        .resize(256, 256, { fit: "cover" })
+        .jpeg({ quality: 80 }) // re-encoding also strips EXIF
+        .toBuffer();
+    } catch {
+      return res.status(400).json({ message: "That file is not a valid image" });
+    }
+
+    const user = await User.findByIdAndUpdate(
+      req.user.id,
+      {
+        avatarData: buffer,
+        // ?v= changes on every upload so browsers don't show the old photo
+        profilePic: `/api/users/${req.user.id}/avatar?v=${Date.now()}`,
+      },
+      { new: true }
+    ).select("-password");
+
+    res.status(200).json({ success: true, user });
+  } catch (error) {
+    console.error("Error in updateAvatar controller", error.message);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+}
+
+export async function getAvatar(req, res) {
+  try {
+    const { id } = req.params;
+    if (!mongoose.isValidObjectId(id)) return res.status(400).end();
+
+    const user = await User.findById(id).select("+avatarData");
+    if (!user?.avatarData?.length) return res.status(404).end();
+
+    res.set("Content-Type", "image/jpeg");
+    res.set("Cache-Control", "private, max-age=31536000, immutable"); // safe: the URL changes with each upload
+    res.send(user.avatarData);
+  } catch (error) {
+    console.error("Error in getAvatar controller", error.message);
+    res.status(500).end();
   }
 }

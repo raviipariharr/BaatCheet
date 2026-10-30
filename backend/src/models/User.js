@@ -23,12 +23,17 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
     },
-   nativeLanguage: { type: String, enum: ["", ...SUPPORTED_LANGUAGES], default: "" },
-  learningLanguage: { type: String, enum: ["", ...SUPPORTED_LANGUAGES], default: "" },
-  knownLanguages: {
-  type: [{ type: String, enum: SUPPORTED_LANGUAGES }],
-  default: [],
-},
+    nativeLanguage: { type: String, enum: ["", ...SUPPORTED_LANGUAGES], default: "" },
+    learningLanguage: { type: String, enum: ["", ...SUPPORTED_LANGUAGES], default: "" },
+    knownLanguages: {
+      type: [{ type: String, enum: SUPPORTED_LANGUAGES }],
+      default: [],
+    },
+
+    avatarData: {
+      type: Buffer,
+      select: false,
+    },
     location: {
       type: String,
       default: "",
