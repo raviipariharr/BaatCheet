@@ -11,8 +11,9 @@ const SocketContext = createContext({
   connected: false,
   onlineUsers: new Set(),
   unread: {},
-  markRead: () => {},
-  setActiveChat: () => {},
+  totalUnread: 0,
+  markRead: () => { },
+  setActiveChat: () => { },
 });
 export const useSocket = () => useContext(SocketContext);
 
@@ -108,7 +109,7 @@ export const SocketProvider = ({ children }) => {
 
   return (
     <SocketContext.Provider
-      value={{ socket, connected, onlineUsers, unread, markRead, setActiveChat }}
+      value={{ socket, connected, onlineUsers, unread, totalUnread, markRead, setActiveChat }}
     >
       {children}
     </SocketContext.Provider>

@@ -1,11 +1,12 @@
 import { Link, useLocation } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
-import { BellIcon, LogOutIcon, ShipWheelIcon } from "lucide-react";
+import { BellIcon, LogOutIcon, MessageCircleIcon, ShipWheelIcon } from "lucide-react";
 import ThemeSelector from "./ThemeSelector";
 import useLogout from "../hooks/useLogout";
-
+import { useSocket } from "../context/SocketContext";
 const Navbar = () => {
   const { authUser } = useAuthUser();
+  const { totalUnread } = useSocket();
   const location = useLocation();
   const isChatPage = location.pathname?.startsWith("/chat");
 
@@ -34,6 +35,17 @@ const Navbar = () => {
                 <BellIcon className="h-6 w-6 text-base-content opacity-70" />
               </button>
             </Link>
+
+            <Link to="/friends" className="btn btn-ghost btn-circle">
+              <span className="indicator">
+                {totalUnread > 0 && (
+                  <span className="indicator-item badge badge-primary badge-xs">
+                    {totalUnread > 99 ? "99+" : totalUnread}
+                  </span>
+                )}
+                <MessageCircleIcon className="h-6 w-6 text-base-content opacity-70" />
+              </span>
+            </Link>
           </div>
 
           {/* Theme Selector */}
@@ -45,6 +57,7 @@ const Navbar = () => {
               <img src={authUser?.profilePic} alt="User Avatar" />
             </div>
           </Link>
+
 
           {/* Logout Button */}
           <button

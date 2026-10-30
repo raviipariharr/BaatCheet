@@ -1,9 +1,12 @@
 import { Link, useLocation } from "react-router";
 import useAuthUser from "../hooks/useAuthUser";
-import { BellIcon, HomeIcon, ShipWheelIcon, UsersIcon } from "lucide-react";
+import { BellIcon, HomeIcon, MessageCircleIcon, ShipWheelIcon, UsersIcon } from "lucide-react";
+import { useSocket } from "../context/SocketContext";
+
 
 const Sidebar = () => {
   const { authUser } = useAuthUser();
+  const { totalUnread } = useSocket();
   const location = useLocation();
   const currentPath = location.pathname;
 
@@ -29,6 +32,19 @@ const Sidebar = () => {
         </Link>
 
         <Link
+          to="/friends"
+          className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${currentPath === "/friends" ? "btn-active" : ""}`}
+        >
+          <MessageCircleIcon className="size-5 text-base-content opacity-70" />
+          <span>Friends</span>
+          {totalUnread > 0 && (
+            <span className="badge badge-primary badge-sm ml-auto">
+              {totalUnread > 99 ? "99+" : totalUnread}
+            </span>
+          )}
+        </Link>
+
+        <Link
           to="/profile"
           className={`btn btn-ghost justify-start w-full gap-3 px-3 normal-case ${currentPath === "/profile" ? "btn-active" : ""
             }`}
@@ -45,6 +61,7 @@ const Sidebar = () => {
           <BellIcon className="size-5 text-base-content opacity-70" />
           <span>Notifications</span>
         </Link>
+
       </nav>
 
       {/* USER PROFILE SECTION */}
