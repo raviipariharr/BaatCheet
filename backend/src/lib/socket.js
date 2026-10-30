@@ -5,8 +5,8 @@ import User from "../models/User.js";
 import Message from "../models/Message.js";
 import { conversationId } from "./conversation.js";
 
-const online = new Map();
 
+const online = new Map();
 // Parse a cookie header without an external package.
 function parseCookie(cookieHeader, name) {
   const cookie = cookieHeader
@@ -15,6 +15,26 @@ function parseCookie(cookieHeader, name) {
     .find((part) => part.startsWith(`${name}=`));
 
   return cookie ? decodeURIComponent(cookie.slice(name.length + 1)) : null;
+}
+
+const calls = new Map();
+
+function endCall(io, userId, reason) {
+  const st = calls.get(userId);
+  if (!st) return;
+
+  const peerId = st.peer;
+
+  clearTimeout(st.timer);
+  clearTimeout(calls.get(peerId)?.timer);
+
+  calls.delete(userId);
+  calls.delete(peerId);
+
+  io.to([`user:${userId}`, `user:${peerId}`]).emit("call:ended", {
+    reason,
+    by: userId,
+  });
 }
 
 const areFriends = (a, b) => User.exists({ _id: a, friends: b });
@@ -146,6 +166,10 @@ export function initSocket(httpServer) {
     socket.on("disconnect", () => {
       sockets.delete(socket.id);
 
+      const st = calls.get(me);
+      if (st && (st.socketId === socket.id || sockets.size === 0)) {
+        endCall(io, me, st.status === "ringing" && st.role === "caller" ? "cancelled" : "disconnected");
+      }
       if (sockets.size === 0) {
         online.delete(me);
 
@@ -189,6 +213,64 @@ export function initSocket(httpServer) {
         console.error("message:delete error:", error.message);
         ack?.({ ok: false, message: "Could not delete message" });
       }
+    });
+
+    socket.on("call:invite", async ({ to } = {}, ack) => {
+      if (!mongoose.isValidObjectId(to) || !(await areFriends(me, to))) {
+        return ack?.({ ok: false, message: "You can only call your friends" });
+      }
+      // no await between these checks and calls.set, so two invites can't race
+      if (!online.has(to)) return ack?.({ ok: false, message: "They are offline" });
+      if (calls.has(me)) return ack?.({ ok: false, message: "You are already in a call" });
+      if (calls.has(to)) return ack?.({ ok: false, message: "They are busy on another call" });
+
+      const timer = setTimeout(() => {
+        if (calls.get(me)?.status === "ringing") {
+          endCall(io, me, "timeout");
+        }
+      }, 30_000);
+
+      calls.set(me, { peer: to, role: "caller", status: "ringing", socketId: socket.id, timer });
+      calls.set(to, { peer: me, role: "callee", status: "ringing" });
+
+      io.to(`user:${to}`).emit("call:incoming", {
+        from: me,
+        name: socket.user.fullName,
+        profilePic: socket.user.profilePic,
+      });
+      ack?.({ ok: true });
+    });
+
+    socket.on("call:accept", () => {
+      const st = calls.get(me);
+      if (!st || st.role !== "callee" || st.status !== "ringing") return;
+      const caller = calls.get(st.peer);
+      if (!caller) return;
+
+      clearTimeout(caller.timer);
+      st.status = "active";
+      st.socketId = socket.id; // the call now belongs to this tab
+      caller.status = "active";
+
+      socket.to(`user:${me}`).emit("call:handled"); // my other tabs stop ringing
+      io.to(caller.socketId).emit("call:accepted");
+    });
+
+    // relays only between the two sockets that own the call
+    socket.on("call:signal", ({ data } = {}) => {
+      const st = calls.get(me);
+      if (!st || st.status !== "active" || st.socketId !== socket.id) return;
+      const peerSocketId = calls.get(st.peer)?.socketId;
+      if (peerSocketId && data && typeof data === "object") {
+        io.to(peerSocketId).emit("call:signal", { data });
+      }
+    });
+
+    // cancel (caller), reject (callee) and hang up all use this
+    socket.on("call:end", () => {
+      const st = calls.get(me);
+      if (!st) return;
+      endCall(io, me, st.status === "active" ? "hangup" : st.role === "caller" ? "cancelled" : "rejected");
     });
 
   });

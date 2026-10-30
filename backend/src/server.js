@@ -63,4 +63,8 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+const io = initSocket(server);
+app.set("io", io);
+
 startServer();

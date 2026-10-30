@@ -5,6 +5,19 @@ import { scoreMatch } from "../lib/matching.js";
 import mongoose from "mongoose";
 import sharp from "sharp";
 
+function broadcastProfile(req, user) {
+  const io = req.app.get("io");
+  const rooms = req.user.friends.map((id) => `user:${id}`);
+  // io.to([]) with no rooms would broadcast to EVERYONE, so guard it
+  if (!io || rooms.length === 0) return;
+
+  io.to(rooms).emit("profile:updated", {
+    userId: user._id.toString(),
+    profilePic: user.profilePic,
+    bio: user.bio,
+  });
+} 
+
 export async function getRecommendedUsers(req, res) {
   try {
     const me = req.user;
@@ -185,7 +198,7 @@ export async function updateProfile(req, res) {
       { $set: { bio } },
       { new: true, runValidators: true }
     ).select("-password");
-
+    broadcastProfile(req, user);
     res.status(200).json({ success: true, user });
   } catch (error) {
     console.error("Error in updateProfile controller", error.message);
@@ -217,7 +230,7 @@ export async function updateAvatar(req, res) {
       },
       { new: true }
     ).select("-password");
-
+    broadcastProfile(req, user);
     res.status(200).json({ success: true, user });
   } catch (error) {
     console.error("Error in updateAvatar controller", error.message);

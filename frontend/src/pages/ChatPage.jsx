@@ -9,10 +9,14 @@ import { useSocket } from "../context/SocketContext";
 import { getMessages, getUserFriends } from "../lib/api";
 import TranslateBlock from "../components/TranslateBlock";
 import ChatLoader from "../components/ChatLoader";
+import { VideoIcon } from "lucide-react";
+import { useCall } from "../context/CallContext";
+
 
 const ChatPage = () => {
   const { id: targetUserId } = useParams();
   const { authUser } = useAuthUser();
+  const { startCall, call } = useCall();
 
   const {
     socket,
@@ -151,6 +155,7 @@ const ChatPage = () => {
     return () => {
       socket.off("message:new", onNew);
       socket.off("typing", onTyping);
+      socket.off("message:deleted", onDeleted);
       clearTimeout(peerTypingTimer.current);
     };
   }, [socket, targetUserId, queryClient]);
@@ -247,9 +252,21 @@ const ChatPage = () => {
 
   const handleDelete = (id) => {
     if (!window.confirm("Delete this message for everyone?")) return;
-    socket.timeout(5000).emit("message:delete", { messageId: id }, (err, res) => {
-      if (err || !res?.ok) toast.error(res?.message || "Could not delete message");
-    });
+
+    if (!socket || !connected) {
+      toast.error("Not connected to the server");
+      return;
+    }
+
+    socket.timeout(5000).emit(
+      "message:delete",
+      { messageId: id },
+      (err, res) => {
+        if (err || !res?.ok) {
+          toast.error(res?.message || "Could not delete message");
+        }
+      }
+    );
   };
 
   // Open or close the emoji picker.
@@ -308,24 +325,8 @@ const ChatPage = () => {
   const isOnline = onlineUsers.has(targetUserId);
 
   return (<div className="flex flex-col h-[calc(100dvh-4rem)] max-w-4xl mx-auto">
-    {/* HEADER */} <div className="flex items-center gap-3 p-4 border-b border-base-300">
-      <div
-        className={`avatar ${isOnline ? "online" : "offline"}`}
-      > <div className="w-10 rounded-full"> <img
-        src={friend?.profilePic}
-        alt={friend?.fullName}
-      /> </div> </div>
-
-      <div>
-        <h2 className="font-semibold leading-tight">
-          {friend?.fullName ?? "Chat"}
-        </h2>
-
-        <p className="text-xs opacity-70">
-          {isOnline ? "Online" : "Offline"}
-        </p>
-      </div>
-    </div>
+    {/* HEADER */}
+    <div className="flex items-center gap-3 p-4 border-b border-base-300"> {/* Friend Avatar */} <div className={`avatar ${isOnline ? "online" : "offline"}`}> <div className="w-10 rounded-full"> <img src={friend?.profilePic} alt={friend?.fullName || "Friend"} /> </div> </div> {/* Friend Details */} <div className="min-w-0 flex-1"> <h2 className="font-semibold leading-tight"> {friend?.fullName ?? "Chat"} </h2> <p className="text-xs opacity-70"> {isOnline ? "Online" : "Offline"} </p> </div> {/* Video Call Button */} <button type="button" className="btn btn-success btn-sm text-white" disabled={!isOnline || call.status !== "idle"} title={!isOnline ? "Your friend is offline" : call.status !== "idle" ? "A call is already in progress" : "Start a video call"} onClick={() => startCall({ id: targetUserId, name: friend?.fullName, profilePic: friend?.profilePic, })} > <VideoIcon className="size-5" /> <span className="hidden sm:inline">Video Call</span> </button> </div>
 
     {/* MESSAGES */}
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -368,16 +369,6 @@ const ChatPage = () => {
                 </button>
               )}
             </div>
-
-            <span className="mt-1 text-[11px] opacity-60">
-              {new Date(m.createdAt).toLocaleTimeString(
-                [],
-                {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                }
-              )}
-            </span>
 
             {!mine && <TranslateBlock message={m} />}
           </div>

@@ -103,6 +103,15 @@ export const SocketProvider = ({ children }) => {
       });
     });
 
+    s.on("profile:updated", ({ userId, profilePic, bio }) => {
+      const patch = (list) =>
+        Array.isArray(list)
+          ? list.map((u) => (u._id === userId ? { ...u, profilePic, bio: bio ?? u.bio } : u))
+          : list;
+      queryClient.setQueryData(["friends"], patch);
+      queryClient.setQueryData(["users"], patch);
+    });
+
     return () => {
       s.disconnect();
       setSocket(null);

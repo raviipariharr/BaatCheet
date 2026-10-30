@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { SocketProvider } from "./context/SocketContext.jsx";
 import "./index.css";
 import App from "./App.jsx";
+import { CallProvider } from "./context/CallContext.jsx";
 
 import { BrowserRouter } from "react-router";
 
@@ -15,8 +16,10 @@ createRoot(document.getElementById("root")).render(
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
         <SocketProvider>
+           <CallProvider>
           <App />
-        </SocketProvider>
+          </CallProvider>
+          </SocketProvider>
       </QueryClientProvider>
     </BrowserRouter>
   </StrictMode>
