@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 import { useSocket } from "./SocketContext";
+import useLiveCaptions from "../hooks/useLiveCaptions";
 
 const ICE_SERVERS = [
     { urls: "stun:stun.l.google.com:19302" },
@@ -53,6 +54,8 @@ export const CallProvider = ({ children }) => {
     const callRef = useRef(call);
     callRef.current = call;
 
+    const live = useLiveCaptions({ socket, active: call.status === "active", micOn });
+    
     const cleanup = useCallback(() => {
         pcRef.current?.close();
         pcRef.current = null;
@@ -266,11 +269,24 @@ export const CallProvider = ({ children }) => {
         };
     }, [socket, createPeer, cleanup]);
 
+    // Build the context value after all referenced functions are initialized.
+    const value = {
+        call,
+        localStream,
+        remoteStream,
+        micOn,
+        camOn,
+        startCall,
+        acceptCall,
+        hangup,
+        toggleMic,
+        toggleCam,
+        ...live,
+    };
+
     return (
-        <CallContext.Provider
-            value={{ call, localStream, remoteStream, micOn, camOn, startCall, acceptCall, hangup, toggleMic, toggleCam }}
-        >
+        <CallContext.Provider value={value}>
             {children}
         </CallContext.Provider>
     );
-};  
+};
