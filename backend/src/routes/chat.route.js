@@ -4,7 +4,6 @@ import rateLimit from "express-rate-limit";
 import { protectRoute } from "../middleware/auth.middleware.js";
 
 import {
-getStreamToken,
 getMessages,
 getUnreadCounts,
 translateMessage,
@@ -17,9 +16,6 @@ const translateLimiter = rateLimit({
 windowMs: 60 * 1000,
 limit: 30,
 });
-
-// Get Stream token
-router.get("/token", protectRoute, getStreamToken);
 
 // Get unread message counts
 router.get("/unread", protectRoute, getUnreadCounts);

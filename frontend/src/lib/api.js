@@ -59,11 +59,6 @@ export async function acceptFriendRequest(requestId) {
   return response.data;
 }
 
-export async function getStreamToken() {
-  const response = await axiosInstance.get("/chat/token");
-  return response.data;
-}
-
 export async function updateLanguages(data) {
   const response = await axiosInstance.put("/users/me/languages", data);
   return response.data;

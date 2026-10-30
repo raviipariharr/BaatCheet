@@ -1,23 +1,33 @@
 import { useEffect, useRef, useState } from "react";
-import { Link, useParams } from "react-router";
+import { Link, useLocation, useNavigate, useParams } from "react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import EmojiPicker, { EmojiStyle } from "emoji-picker-react";
 import toast from "react-hot-toast";
-import { SendIcon, SmileIcon, Trash2Icon } from "lucide-react";
+import {
+  ArrowLeftIcon,
+  SendIcon,
+  SmileIcon,
+  Trash2Icon,
+  VideoIcon,
+} from "lucide-react";
 import useAuthUser from "../hooks/useAuthUser";
-import { useSocket } from "../context/SocketContext";
-import { getMessages, getUserFriends } from "../lib/api";
-import TranslateBlock from "../components/TranslateBlock";
-import ChatLoader from "../components/ChatLoader";
-import { VideoIcon } from "lucide-react";
-import { useCall } from "../context/CallContext";
 
+import { useSocket } from "../context/SocketContext";
+
+import { getMessages, getUserFriends } from "../lib/api";
+
+import TranslateBlock from "../components/TranslateBlock";
+
+import ChatLoader from "../components/ChatLoader";
+
+import { useCall } from "../context/CallContext";
 
 const ChatPage = () => {
   const { id: targetUserId } = useParams();
   const { authUser } = useAuthUser();
   const { startCall, call } = useCall();
-
+  const navigate = useNavigate();
+  const location = useLocation();
   const {
     socket,
     connected,
@@ -26,6 +36,7 @@ const ChatPage = () => {
     setActiveChat,
   } = useSocket();
 
+  const goBack = () => (location.key !== "default" ? navigate(-1) : navigate("/"));
   const queryClient = useQueryClient();
 
   const [text, setText] = useState("");
@@ -321,13 +332,65 @@ const ChatPage = () => {
     </div>
     );
   }
-  1
   const isOnline = onlineUsers.has(targetUserId);
 
   return (<div className="flex flex-col h-[calc(100dvh-4rem)] max-w-4xl mx-auto">
     {/* HEADER */}
-    <div className="flex items-center gap-3 p-4 border-b border-base-300"> {/* Friend Avatar */} <div className={`avatar ${isOnline ? "online" : "offline"}`}> <div className="w-10 rounded-full"> <img src={friend?.profilePic} alt={friend?.fullName || "Friend"} /> </div> </div> {/* Friend Details */} <div className="min-w-0 flex-1"> <h2 className="font-semibold leading-tight"> {friend?.fullName ?? "Chat"} </h2> <p className="text-xs opacity-70"> {isOnline ? "Online" : "Offline"} </p> </div> {/* Video Call Button */} <button type="button" className="btn btn-success btn-sm text-white" disabled={!isOnline || call.status !== "idle"} title={!isOnline ? "Your friend is offline" : call.status !== "idle" ? "A call is already in progress" : "Start a video call"} onClick={() => startCall({ id: targetUserId, name: friend?.fullName, profilePic: friend?.profilePic, })} > <VideoIcon className="size-5" /> <span className="hidden sm:inline">Video Call</span> </button> </div>
+    <div className="flex items-center gap-3 p-4 border-b border-base-300">
+      {/* Back Button */}
+      <button
+        type="button"
+        className="btn btn-ghost btn-circle btn-sm"
+        onClick={goBack}
+        aria-label="Back"
+      >
+        <ArrowLeftIcon className="size-5" />
+      </button>
 
+      {/* Friend Avatar */}
+      <div className={`avatar ${isOnline ? "online" : "offline"}`}>
+        <div className="w-10 rounded-full">
+          <img
+            src={friend?.profilePic}
+            alt={friend?.fullName || "Friend"}
+          />
+        </div>
+      </div>
+
+      {/* Friend Details */}
+      <div className="min-w-0 flex-1">
+        <h2 className="font-semibold leading-tight">
+          {friend?.fullName ?? "Chat"}
+        </h2>
+        <p className="text-xs opacity-70">
+          {isOnline ? "Online" : "Offline"}
+        </p>
+      </div>
+
+      {/* Video Call Button */}
+      <button
+        type="button"
+        className="btn btn-success btn-sm text-white"
+        disabled={!isOnline || call.status !== "idle"}
+        title={
+          !isOnline
+            ? "Your friend is offline"
+            : call.status !== "idle"
+              ? "A call is already in progress"
+              : "Start a video call"
+        }
+        onClick={() =>
+          startCall({
+            id: targetUserId,
+            name: friend?.fullName,
+            profilePic: friend?.profilePic,
+          })
+        }
+      >
+        <VideoIcon className="size-5" />
+        <span className="hidden sm:inline">Video Call</span>
+      </button>
+    </div>
     {/* MESSAGES */}
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
       {messages.length === 0 && (

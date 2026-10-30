@@ -1,4 +1,3 @@
-import { upsertStreamUser } from "../lib/stream.js";
 import { parseLanguages } from "../lib/languages.js";
 import User from "../models/User.js";
 import jwt from "jsonwebtoken";
@@ -26,7 +25,7 @@ export async function signup(req, res) {
       return res.status(400).json({ message: "Email already exists, please use a diffrent one" });
     }
 
-   // generate a num between 1-100
+    // generate a num between 1-100
     const randomAvatar = `https://api.dicebear.com/7.x/avataaars/svg?seed=${Math.random()}`;
 
     const newUser = await User.create({
@@ -35,17 +34,6 @@ export async function signup(req, res) {
       password,
       profilePic: randomAvatar,
     });
-
-    try {
-      await upsertStreamUser({
-        id: newUser._id.toString(),
-        name: newUser.fullName,
-        image: newUser.profilePic || "",
-      });
-      console.log(`Stream user created for ${newUser.fullName}`);
-    } catch (error) {
-      console.log("Error creating Stream user:", error);
-    }
 
     const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET_KEY, {
       expiresIn: "7d",
@@ -58,7 +46,12 @@ export async function signup(req, res) {
       secure: process.env.NODE_ENV === "production",
     });
 
-    res.status(201).json({ success: true, user: newUser });
+    const { password: _p, ...safeUser } = newUser.toObject();
+
+    res.status(201).json({
+      success: true,
+      user: safeUser,
+    });
   } catch (error) {
     console.log("Error in signup controller", error);
     res.status(500).json({ message: "Internal Server Error" });
@@ -90,7 +83,11 @@ export async function login(req, res) {
       secure: process.env.NODE_ENV === "production",
     });
 
-    res.status(200).json({ success: true, user });
+    const { password: _p, ...safeUser } = user.toObject();
+    res.status(200).json({
+      success: true,
+      user: safeUser,
+    });
   } catch (error) {
     console.log("Error in login controller", error.message);
     res.status(500).json({ message: "Internal Server Error" });
@@ -143,24 +140,6 @@ export async function onboard(req, res) {
         message: "User not found",
       });
     }
-
-    try {
-      await upsertStreamUser({
-        id: updatedUser._id.toString(),
-        name: updatedUser.fullName,
-        image: updatedUser.profilePic || "",
-      });
-
-      console.log(
-        `Stream user updated after onboarding for ${updatedUser.fullName}`
-      );
-    } catch (streamError) {
-      console.log(
-        "Error updating Stream user during onboarding:",
-        streamError.message
-      );
-    }
-
     return res.status(200).json({
       success: true,
       user: updatedUser,
